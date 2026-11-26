@@ -9,4 +9,5 @@ fold_exemplars = Table('fold_exemplars', metadata,
     Column('example', String(160), ForeignKey('crease_samples.code'), nullable=False),
     Column('group_size', Integer, nullable=False),
     Column('token', String(64), nullable=False, unique=True),
+    Column('version', String(64), nullable=True),
 )

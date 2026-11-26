@@ -27,6 +27,10 @@
     {
       "name": "token",
       "label": "计算号"
+    },
+    {
+      "name": "version",
+      "label": "模型版本"
     }
   ],
   "layout": "split",

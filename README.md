@@ -8,7 +8,8 @@
 
 - 旗面与管护登记 `flag_archive`，字段为 `material`（面料）、`heritage`（礼藏原件）、`displayed`（仪典借出）。模型约束位于 `backend/domain/flag_archive_model.py`，规则位于 `flag_archive_service.py`。
 - 折痕样条 `crease_samples`，字段为 `flag`（旗面）、`depth`（平均折深 mm）、`width`（折距 mm）、`lines`（平行线数）、`signed`（图样已核对）。模型约束位于 `backend/domain/crease_samples_model.py`，规则位于 `crease_samples_service.py`。
-- 旗面折态代表样 `fold_exemplars`，字段为 `sample`（目标样条）、`example`（代表样）、`group_size`（折态簇样本数量）、`token`（计算号）。模型约束位于 `backend/domain/fold_exemplars_model.py`，规则位于 `fold_exemplars_service.py`。
+- 旗面折态代表样 `fold_exemplars`，字段为 `sample`（目标样条）、`example`（代表样）、`group_size`（折态簇样本数量）、`token`（计算号）、`version`（模型版本）。模型约束位于 `backend/domain/fold_exemplars_model.py`，规则位于 `fold_exemplars_service.py`。
+- 折态模型试算 `model_trials`，字段为 `fit`（拟合样条）、`holdout`（留样）、`baseline`（对照版）、`status`（状态）、`token`（计算号）、`report`（比对报告）。模型约束位于 `backend/domain/model_trials_model.py`，规则位于 `model_trials_service.py`。
 - 礼具归档移交 `storage_slips`，字段为 `guide`（代表样凭据）、`flag`（旗面）、`action`（归档动作）、`locker`（保管柜）、`witness`（替班双签）。模型约束位于 `backend/domain/storage_slips_model.py`，规则位于 `storage_slips_service.py`。
 
 团队为模拟的6 人典礼保障科，负责典礼旗布的归库和替班保管。
@@ -16,6 +17,8 @@
 替班人员在旗面标签、折痕尺记和交班簿之间确认。折痕模板容易选错，遗产旗容易被当作普通旗处理，交接人到岗时间难对齐。
 
 入库旗面核对和折痕样送入代表样检索，接班岗位签认平放、重折或特殊保管方式。
+
+折态模型先在工作台试算再上线。发起试算时定下拟合用的签认样条；新版和在用版拿同一批留样逐条比代表样，留样所在旗面两版都不拿来拟合；首版单独试算，上线前照旧查找。试算中断后用原来的样条和留样续跑。复核员批准时若对照版已被换下，须重新比对；批准后整版一次性切换，新单立刻用新版查代表样，排队的还用受理时那版。
 
 ### 一天的业务操作
 
@@ -53,6 +56,7 @@ Compose 运行 Nginx、Python FastAPI、独立 Redis 消费进程、SQL 数据�
 | 旗面与管护登记 | `/flag_archive` /flag_archive/return-flag | `frontend/src/pages/flag_archive.js` |
 | 折痕样条 | `/crease_samples` /crease_samples/capture-crease，/crease_samples/verify-crease | `frontend/src/pages/crease_samples.js` |
 | 旗面折态代表样 | `/fold_exemplars` /fold_exemplars/find-exemplar，/fold_exemplars/save-exemplar | `frontend/src/pages/fold_exemplars.js` |
+| 折态模型试算 | `/model_trials` /model_trials/launch-trial，/model_trials/resume-trial，/model_trials/collect-trial，/model_trials/recompare-trial，/model_trials/approve-trial | `frontend/src/pages/model_trials.js` |
 | 礼具归档移交 | `/storage_slips` /storage_slips/handoff-flag | `frontend/src/pages/storage_slips.js` |
 
 SQL 实体与约束在 `backend/domain` 下维护。前端使用原生 ES modules。核心算子为 AffinityPropagation。在标准化空间用 AffinityPropagation 搜索代表样，查询归入欧氏距离最近的代表簇。
